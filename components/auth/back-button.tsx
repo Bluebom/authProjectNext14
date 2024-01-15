@@ -8,7 +8,7 @@ interface BackButtonProps {
     label: string
 }
 
-const BackButton = ({
+export const BackButton = ({
     href,
     label
 }:BackButtonProps) => {
@@ -19,4 +19,3 @@ const BackButton = ({
     </Button> );
 }
  
-export default BackButton;
