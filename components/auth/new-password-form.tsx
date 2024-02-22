@@ -4,9 +4,8 @@ import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
 
-import { LoginSchema } from "@/schemas";
+import { NewPasswordSchema } from "@/schemas";
 
 import {
     Form, FormControl, FormField,
@@ -19,32 +18,30 @@ import CardWrapper from "./card-wrapper";
 import { Button } from "../ui/button";
 import { FormError } from "../form-error";
 import { FormSuccess } from "../form-success";
-import { Login } from "@/actions/login";
 import { useState, useTransition } from "react";
+import { NewPassword } from "@/actions/new-password";
 
-export const LoginForm = () => {
+export const NewPasswordForm = () => {
     const searchParams = useSearchParams();
-    const urlError = searchParams.get("error") === "OAuthAccountNotLinked" ?
-        "E-mail already in use with different provider." :
-        "";
+    const token = searchParams.get("token");
 
     const [error, setError] = useState<string | undefined>("");
     const [success, setSuccess] = useState<string | undefined>("");
     const [isPadding, startTransition] = useTransition();
 
-    const form = useForm<z.infer<typeof LoginSchema>>({
-        resolver: zodResolver(LoginSchema),
+    const form = useForm<z.infer<typeof NewPasswordSchema>>({
+        resolver: zodResolver(NewPasswordSchema),
         defaultValues: {
-            email: "",
-            password: ""
+            password: "",
+            confirmPassword: ""
         }
     });
 
-    const onSubmit = (values: z.infer<typeof LoginSchema>) => {
+    const onSubmit = (values: z.infer<typeof NewPasswordSchema>) => {
         setError("");
         setSuccess("");
         startTransition(() => {
-            Login(values).then((data) => {
+            NewPassword(values, token).then((data) => {
                 if (data?.error) {
                     setError(data.error);
                 }
@@ -57,10 +54,9 @@ export const LoginForm = () => {
 
 
     return (<CardWrapper
-        headerLabel="Welcome Back"
-        backButtonLabel="Don't have an account?"
-        backButtonHref="/auth/register"
-        showSocial
+        headerLabel="Enter a new password"
+        backButtonLabel="Back to login"
+        backButtonHref="/auth/login"
     >
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}
@@ -69,12 +65,12 @@ export const LoginForm = () => {
                 <div className="space-y-4">
                     <FormField
                         control={form.control}
-                        name="email"
+                        name="password"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Email</FormLabel>
+                                <FormLabel>New Password</FormLabel>
                                 <FormControl {...field} >
-                                    <Input disabled={isPadding} {...field} placeholder="john.doe@example.com" type="email" />
+                                    <Input disabled={isPadding} {...field} placeholder="******" type="password" />
                                 </FormControl>
                                 <FormMessage {...field} />
                             </FormItem>
@@ -82,31 +78,21 @@ export const LoginForm = () => {
 
                     <FormField
                         control={form.control}
-                        name="password"
+                        name="confirmPassword"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Password</FormLabel>
+                                <FormLabel>Confirm New Password</FormLabel>
                                 <FormControl {...field} >
                                     <Input disabled={isPadding} {...field} placeholder="******" type="password" />
                                 </FormControl>
-                                <Button 
-                                    size="sm"
-                                    variant={"link"}
-                                    asChild
-                                    className="px-0 font-normal"
-                                >
-                                    <Link href={'/auth/reset'}>
-                                        Forgot your password?
-                                    </Link>
-                                </Button>
                                 <FormMessage {...field} />
                             </FormItem>
                         )} />
                 </div>
-                <FormError message={error || urlError} />
+                <FormError message={error} />
                 <FormSuccess message={success} />
-                <Button disabled={isPadding} type="submit" className="w-full">Login</Button>
+                <Button disabled={isPadding} type="submit" className="w-full">Reset password</Button>
             </form>
         </Form>
     </CardWrapper>);
-}
+};

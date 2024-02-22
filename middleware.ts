@@ -29,6 +29,12 @@ export default auth((req) => {
         return null;
     }
 
+    console.log({
+        isPublicAuth,
+        "path": nextUrl.pathname,
+        publicRoutes
+    });
+    
     if(!isLoggedIn && !isPublicAuth){
         return Response.redirect(new URL("/auth/login", nextUrl))
     }
@@ -36,4 +42,5 @@ export default auth((req) => {
 })
 
 export const config = {
-    matcher: ['/((?!.+\\.[\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],  }
+    matcher: ['/((?!.+\\.[\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],  
+}
