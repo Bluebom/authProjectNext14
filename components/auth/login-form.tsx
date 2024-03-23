@@ -28,6 +28,7 @@ export const LoginForm = () => {
         "E-mail already in use with different provider." :
         "";
 
+    const [showTwoFactor, setShowTwoFactor] = useState(false);
     const [error, setError] = useState<string | undefined>("");
     const [success, setSuccess] = useState<string | undefined>("");
     const [isPadding, startTransition] = useTransition();
@@ -36,7 +37,8 @@ export const LoginForm = () => {
         resolver: zodResolver(LoginSchema),
         defaultValues: {
             email: "",
-            password: ""
+            password: "",
+            code: ""
         }
     });
 
@@ -46,12 +48,17 @@ export const LoginForm = () => {
         startTransition(() => {
             Login(values).then((data) => {
                 if (data?.error) {
+                    form.reset();
                     setError(data.error);
                 }
                 if (data?.success) {
+                    form.reset();
                     setSuccess(data.success);
                 }
-            });
+                if (data?.twoFactor) {
+                    setShowTwoFactor(true);
+                }
+            }).catch(() => setError("Something went wrong!"))
         });
     }
 
@@ -67,41 +74,59 @@ export const LoginForm = () => {
                 className="space-y-6"
             >
                 <div className="space-y-4">
-                    <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Email</FormLabel>
-                                <FormControl {...field} >
-                                    <Input disabled={isPadding} {...field} placeholder="john.doe@example.com" type="email" />
-                                </FormControl>
-                                <FormMessage {...field} />
-                            </FormItem>
-                        )} />
+                    {showTwoFactor && (
+                        <FormField
+                            control={form.control}
+                            name="code"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Two Factor Code</FormLabel>
+                                    <FormControl {...field} >
+                                        <Input disabled={isPadding} {...field} placeholder="12345" />
+                                    </FormControl>
+                                    <FormMessage {...field} />
+                                </FormItem>
+                            )} />
+                    )}
+                    {!showTwoFactor && (
+                        <>
+                            <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Email</FormLabel>
+                                        <FormControl {...field} >
+                                            <Input disabled={isPadding} {...field} placeholder="john.doe@example.com" type="email" />
+                                        </FormControl>
+                                        <FormMessage {...field} />
+                                    </FormItem>
+                                )} />
 
-                    <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Password</FormLabel>
-                                <FormControl {...field} >
-                                    <Input disabled={isPadding} {...field} placeholder="******" type="password" />
-                                </FormControl>
-                                <Button 
-                                    size="sm"
-                                    variant={"link"}
-                                    asChild
-                                    className="px-0 font-normal"
-                                >
-                                    <Link href={'/auth/reset'}>
-                                        Forgot your password?
-                                    </Link>
-                                </Button>
-                                <FormMessage {...field} />
-                            </FormItem>
-                        )} />
+                            <FormField
+                                control={form.control}
+                                name="password"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Password</FormLabel>
+                                        <FormControl {...field} >
+                                            <Input disabled={isPadding} {...field} placeholder="******" type="password" />
+                                        </FormControl>
+                                        <Button
+                                            size="sm"
+                                            variant={"link"}
+                                            asChild
+                                            className="px-0 font-normal"
+                                        >
+                                            <Link href={'/auth/reset'}>
+                                                Forgot your password?
+                                            </Link>
+                                        </Button>
+                                        <FormMessage {...field} />
+                                    </FormItem>
+                                )} />
+                        </>
+                    )}
                 </div>
                 <FormError message={error || urlError} />
                 <FormSuccess message={success} />
